@@ -3,6 +3,7 @@
 .env
 .phpactor.json
 .phpunit.result.cache
+.php-cs-fixer.cache
 /.fleet
 /.idea
 /.nova
@@ -17,6 +18,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+/var
 Homestead.json
 Homestead.yaml
 Thumbs.db

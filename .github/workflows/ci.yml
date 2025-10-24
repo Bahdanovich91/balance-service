@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Получаем код
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Настраиваем PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: mbstring, intl, pdo_pgsql, xml, dom, zip
+          tools: composer:v2
+          coverage: none
+
+      # 3. Устанавливаем зависимости
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # 4. Подготавливаем .env
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+          php artisan key:generate
+          php artisan config:clear
+          php artisan migrate --force
+
+      # 5. Проверяем стиль кода
+      - name: Run PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      # 6. Анализ PHPStan
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --configuration=phpstan.neon
+
+#      # 7. Тесты
+#      - name: Run Tests
+#        run: php artisan test --parallel --without-tty
+
+      # 8. Проверка зависимостей
+      - name: Composer Security Audit
+        run: composer audit
