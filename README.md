@@ -66,6 +66,17 @@ docker compose logs postgres
 docker compose logs nginx
 ```
 
+### Запуск phpstan и cs-fixer
+
+```bash
+# cs-fixer
+vendor/bin/php-cs-fixer fix
+vendor/bin/php-cs-fixer fix --dry-run --diff
+
+# phpstan
+vendor/bin/phpstan analyse --configuration=phpstan.neon
+```
+
 ### Работа с Laravel
 
 ```bash
