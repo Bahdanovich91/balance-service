@@ -42,31 +42,64 @@ docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
 ```
 
-### Проверка работы
+## API Endpoints
 
-Откройте браузер и перейдите по адресу: http://localhost:8080
+### 1. Зачисление средств
+```http
+POST /api/deposit
+Content-Type: application/json
 
-## 🛠 Полезные команды
-
-### Работа с контейнерами
-
-```bash
-# Остановка всех контейнеров
-docker compose down
-
-# Пересборка контейнеров
-docker compose build --no-cache
-
-# Вход в контейнер приложения
-docker compose exec app bash
-
-# Просмотр логов конкретного сервиса
-docker compose logs app
-docker compose logs postgres
-docker compose logs nginx
+{
+    "user_id": 1,
+    "amount": 500.00,
+    "comment": "Пополнение через карту"
+}
 ```
 
-### Запуск phpstan и cs-fixer
+### 2. Списание средств
+```http
+POST /api/withdraw
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "amount": 200.00,
+    "comment": "Покупка подписки"
+}
+```
+
+### 3. Перевод между пользователями
+```http
+POST /api/transfer
+Content-Type: application/json
+
+{
+    "from_user_id": 1,
+    "to_user_id": 2,
+    "amount": 150.00,
+    "comment": "Перевод другу"
+}
+```
+
+### 4. Получение баланса
+```http
+GET /api/balance/{user_id}
+```
+
+
+## Тестирование
+
+```bash
+# Запуск всех тестов
+docker compose exec app php artisan test
+
+# Запуск с покрытием
+docker compose exec app php artisan test --coverage
+
+# Запуск конкретного теста
+docker compose exec app php artisan test tests/Feature/BalanceApiTest.php
+```
+## Запуск phpstan и cs-fixer
 
 ```bash
 # cs-fixer
@@ -75,62 +108,4 @@ vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # phpstan
 vendor/bin/phpstan analyse --configuration=phpstan.neon
-```
-
-### Работа с Laravel
-
-```bash
-# Создание миграции
-docker compose exec app php artisan make:migration create_transactions_table
-
-# Создание модели
-docker compose exec app php artisan make:model Transaction
-
-# Создание контроллера
-docker compose exec app php artisan make:controller Api/BalanceController
-
-# Запуск миграций
-docker compose exec app php artisan migrate
-
-# Откат миграций
-docker compose exec app php artisan migrate:rollback
-
-# Создание сидеров
-docker compose exec app php artisan make:seeder UserSeeder
-```
-
-### Тестирование
-
-```bash
-# Запуск тестов
-docker compose exec app php artisan test
-
-# Создание теста
-docker compose exec app php artisan make:test BalanceTest
-```
-
-## 📁 Структура проекта
-
-```
-balance-service/
-├── docker/
-│   ├── nginx/
-│   │   └── default.conf
-│   └── php/
-│       └── local.ini
-├── docker-compose.yml
-├── Dockerfile
-├── setup.sh
-└── README.md
-```
-
-## 🐛 Решение проблем
-
-### Контейнер не запускается
-```bash
-# Проверка статуса контейнеров
-docker compose ps
-
-# Просмотр логов
-docker compose logs
 ```
