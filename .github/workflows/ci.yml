@@ -46,7 +46,7 @@ jobs:
 
       # 7. Тесты
       - name: Run Tests
-        run: php artisan test --parallel --without-tty
+        run: php artisan test --without-tty
 
       # 8. Проверка зависимостей
       - name: Composer Security Audit
