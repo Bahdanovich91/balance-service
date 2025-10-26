@@ -6,13 +6,13 @@ use DateTime;
 
 class LogService
 {
-    public function write(string $fileName, string $data): void
+    public function write(string $fileName, string $data, int $maxLines = 10000, int $trimLines = 5000): void
     {
         $filePath = storage_path('logs/' . $fileName);
 
         $this->ensureLogDirectoryExists();
         $this->ensureLogFileExists($filePath);
-        $this->truncateIfTooLarge($filePath);
+        $this->truncateIfTooLarge($filePath, $maxLines, $trimLines);
 
         $message = (new DateTime())->format('Y:m:d H:i:s') . " " . $data;
         file_put_contents($filePath, $message . "\n\n", FILE_APPEND);
@@ -33,7 +33,7 @@ class LogService
         }
     }
 
-    protected function truncateIfTooLarge(string $filePath, int $maxLines = 10000, int $trimLines = 5000): void
+    protected function truncateIfTooLarge(string $filePath, int $maxLines, int $trimLines): void
     {
         $rows = file($filePath);
         if (count($rows) >= $maxLines) {
