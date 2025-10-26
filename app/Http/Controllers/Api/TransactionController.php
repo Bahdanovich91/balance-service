@@ -69,11 +69,11 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->deposit($request->validated());
         } catch (\Throwable $e) {
-            $rawData = $request->only(['user_id', 'amount', 'comment']);
+            $data = $request->only(['user_id', 'amount']);
             $this->log->write('deposits_errors.log', sprintf(
                 'Deposit failed - User ID: %d, Amount: %.2f, Error: %s',
-                $rawData['user_id'],
-                $rawData['amount'],
+                $data['user_id'],
+                $data['amount'],
                 $e->getMessage()
             ));
 
@@ -149,11 +149,11 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->withdraw($request->validated());
         } catch (\Throwable $e) {
-            $rawData = $request->only(['user_id', 'amount', 'comment']);
+            $data = $request->only(['user_id', 'amount']);
             $this->log->write('withdrawals_errors.log', sprintf(
                 'Withdrawal failed - User ID: %d, Amount: %.2f, Error: %s',
-                $rawData['user_id'],
-                $rawData['amount'],
+                $data['user_id'],
+                $data['amount'],
                 $e->getMessage()
             ));
 
@@ -240,12 +240,12 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->transfer($request->validated());
         } catch (\Throwable $e) {
-            $rawData = $request->only(['from_user_id', 'to_user_id', 'amount', 'comment']);
+            $data = $request->only(['from_user_id', 'to_user_id', 'amount']);
             $this->log->write('transfers_errors.log', sprintf(
                 'Transfer failed - From User ID: %d, To User ID: %d, Amount: %.2f, Error: %s',
-                $rawData['from_user_id'],
-                $rawData['to_user_id'],
-                $rawData['amount'],
+                $data['from_user_id'],
+                $data['to_user_id'],
+                $data['amount'],
                 $e->getMessage()
             ));
 
