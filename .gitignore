@@ -6,6 +6,7 @@
 .php-cs-fixer.cache
 /resources/views/vendor/
 /storage/api-docs/
+/coverage-report/
 /.fleet
 /.idea
 /.nova
