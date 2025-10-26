@@ -14,7 +14,7 @@ class LogService
         $this->ensureLogFileExists($filePath);
         $this->truncateIfTooLarge($filePath);
 
-        $message = (new DateTime())->format('Y:m:d H:i:s') . $data;
+        $message = (new DateTime())->format('Y:m:d H:i:s') . " " . $data;
         file_put_contents($filePath, $message . "\n\n", FILE_APPEND);
     }
 
