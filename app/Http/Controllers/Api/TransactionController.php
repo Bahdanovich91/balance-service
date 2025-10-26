@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Dto\DepositDto;
+use App\Dto\TransferDto;
+use App\Dto\WithdrawDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\TransferRequest;
@@ -66,7 +69,7 @@ class TransactionController extends Controller
     public function deposit(DepositRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->deposit($request->validated());
+            $result = $this->balanceService->deposit(new DepositDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Deposit failed - User ID: %d, Amount: %.2f, Error: %s',
@@ -148,7 +151,7 @@ class TransactionController extends Controller
     public function withdraw(WithdrawRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->withdraw($request->validated());
+            $result = $this->balanceService->withdraw(new WithdrawDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Withdrawal failed - User ID: %d, Amount: %.2f, Error: %s',
@@ -241,7 +244,7 @@ class TransactionController extends Controller
     public function transfer(TransferRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->transfer($request->validated());
+            $result = $this->balanceService->transfer(new TransferDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Transfer failed - From User ID: %d, To User ID: %d, Amount: %.2f, Error: %s',

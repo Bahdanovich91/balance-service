@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Dto\DepositDto;
+use App\Dto\TransferDto;
+use App\Dto\WithdrawDto;
 use App\Enums\TransactionType;
 use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
@@ -18,19 +21,19 @@ readonly class UserBalanceService
     ) {
     }
 
-    public function deposit(array $data): array
+    public function deposit(DepositDto $depositDto): array
     {
-        return DB::transaction(function () use ($data) {
-            $userBalance = $this->userBalanceRepository->findOrCreate($data['user_id']);
-            $newBalance = $userBalance->amount + $data['amount'];
+        return DB::transaction(function () use ($depositDto) {
+            $userBalance = $this->userBalanceRepository->findOrCreate($depositDto->user_id);
+            $newBalance = $userBalance->amount + $depositDto->amount;
 
             $this->userBalanceRepository->updateBalance($userBalance, $newBalance);
 
             $transaction = $this->transactionService->create(
-                toUserId: $data['user_id'],
-                amount: $data['amount'],
+                toUserId: $depositDto->user_id,
+                amount: $depositDto->amount,
                 type: TransactionType::Deposit,
-                comment: $data['comment']
+                comment: $depositDto->comment
             );
 
             return [
@@ -40,23 +43,23 @@ readonly class UserBalanceService
         });
     }
 
-    public function withdraw(array $data): array
+    public function withdraw(WithdrawDto $withdrawDto): array
     {
-        return DB::transaction(function () use ($data) {
-            $userBalance = $this->userBalanceRepository->findOrFail($data['user_id']);
+        return DB::transaction(function () use ($withdrawDto) {
+            $userBalance = $this->userBalanceRepository->findOrFail($withdrawDto->user_id);
 
-            if ($userBalance->amount < $data['amount']) {
+            if ($userBalance->amount < $withdrawDto->amount) {
                 throw new InsufficientFundsException();
             }
 
-            $newBalance = $userBalance->amount - $data['amount'];
+            $newBalance = $userBalance->amount - $withdrawDto->amount;
             $this->userBalanceRepository->updateBalance($userBalance, $newBalance);
 
             $transaction = $this->transactionService->create(
-                toUserId: $data['user_id'],
-                amount: $data['amount'],
+                toUserId: $withdrawDto->user_id,
+                amount: $withdrawDto->amount,
                 type: TransactionType::Withdraw,
-                comment: $data['comment']
+                comment: $withdrawDto->comment
             );
 
             return [
@@ -66,36 +69,36 @@ readonly class UserBalanceService
         });
     }
 
-    public function transfer(array $data): array
+    public function transfer(TransferDto $transferDto): array
     {
-        return DB::transaction(function () use ($data) {
-            $fromUserBalance = $this->userBalanceRepository->findOrFail($data['from_user_id']);
-            $toUserBalance = $this->userBalanceRepository->findOrCreate($data['to_user_id']);
+        return DB::transaction(function () use ($transferDto) {
+            $fromUserBalance = $this->userBalanceRepository->findOrFail($transferDto->from_user_id);
+            $toUserBalance = $this->userBalanceRepository->findOrCreate($transferDto->to_user_id);
 
-            if ($fromUserBalance->amount < $data['amount']) {
+            if ($fromUserBalance->amount < $transferDto->amount) {
                 throw new InsufficientFundsException();
             }
 
-            $newFromBalance = $fromUserBalance->amount - $data['amount'];
-            $newToBalance = $toUserBalance->amount + $data['amount'];
+            $newFromBalance = $fromUserBalance->amount - $transferDto->amount;
+            $newToBalance = $toUserBalance->amount + $transferDto->amount;
 
             $this->userBalanceRepository->updateBalance($fromUserBalance, $newFromBalance);
             $this->userBalanceRepository->updateBalance($toUserBalance, $newToBalance);
 
             $outTransaction = $this->transactionService->create(
-                toUserId: $data['to_user_id'],
-                amount: $data['amount'],
+                toUserId: $transferDto->to_user_id,
+                amount: $transferDto->amount,
                 type: TransactionType::TransferOut,
-                fromUserId: $data['from_user_id'],
-                comment: $data['comment']
+                fromUserId: $transferDto->from_user_id,
+                comment: $transferDto->comment
             );
 
             $inTransaction = $this->transactionService->create(
-                toUserId: $data['to_user_id'],
-                amount: $data['amount'],
+                toUserId: $transferDto->to_user_id,
+                amount: $transferDto->amount,
                 type: TransactionType::TransferIn,
-                fromUserId: $data['from_user_id'],
-                comment: $data['comment']
+                fromUserId: $transferDto->from_user_id,
+                comment: $transferDto->comment
             );
 
             return [
