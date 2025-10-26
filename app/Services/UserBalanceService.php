@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Dto\DepositDto;
+use App\Dto\Result\DepositResultDto;
+use App\Dto\Result\TransferResultDto;
+use App\Dto\Result\WithdrawResultDto;
 use App\Dto\TransferDto;
 use App\Dto\WithdrawDto;
 use App\Enums\TransactionType;
@@ -21,7 +24,7 @@ readonly class UserBalanceService
     ) {
     }
 
-    public function deposit(DepositDto $depositDto): array
+    public function deposit(DepositDto $depositDto): DepositResultDto
     {
         return DB::transaction(function () use ($depositDto) {
             $userBalance = $this->userBalanceRepository->findOrCreate($depositDto->user_id);
@@ -36,14 +39,11 @@ readonly class UserBalanceService
                 comment: $depositDto->comment
             );
 
-            return [
-                'transaction' => $transaction,
-                'new_balance' => $newBalance,
-            ];
+            return new DepositResultDto($transaction, $newBalance);
         });
     }
 
-    public function withdraw(WithdrawDto $withdrawDto): array
+    public function withdraw(WithdrawDto $withdrawDto): WithdrawResultDto
     {
         return DB::transaction(function () use ($withdrawDto) {
             $userBalance = $this->userBalanceRepository->findOrFail($withdrawDto->user_id);
@@ -62,14 +62,11 @@ readonly class UserBalanceService
                 comment: $withdrawDto->comment
             );
 
-            return [
-                'transaction' => $transaction,
-                'new_balance' => $newBalance,
-            ];
+            return new WithdrawResultDto($transaction, $newBalance);
         });
     }
 
-    public function transfer(TransferDto $transferDto): array
+    public function transfer(TransferDto $transferDto): TransferResultDto
     {
         return DB::transaction(function () use ($transferDto) {
             $fromUserBalance = $this->userBalanceRepository->findOrFail($transferDto->from_user_id);
@@ -101,12 +98,12 @@ readonly class UserBalanceService
                 comment: $transferDto->comment
             );
 
-            return [
-                'out_transaction' => $outTransaction,
-                'in_transaction' => $inTransaction,
-                'from_user_balance' => $newFromBalance,
-                'to_user_balance' => $newToBalance,
-            ];
+            return new TransferResultDto(
+                $outTransaction,
+                $inTransaction,
+                $newFromBalance,
+                $newToBalance
+            );
         });
     }
 

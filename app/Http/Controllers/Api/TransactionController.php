@@ -91,8 +91,8 @@ class TransactionController extends Controller
             [
                 'success' => true,
                 'message' => 'Средства успешно зачислены',
-                'transaction' => $result['transaction'],
-                'new_balance' => $result['new_balance'],
+                'transaction' => $result->transaction,
+                'new_balance' => $result->newBalance,
             ],
             Response::HTTP_OK
         );
@@ -173,8 +173,8 @@ class TransactionController extends Controller
             [
                 'success' => true,
                 'message' => 'Средства успешно списаны',
-                'transaction' => $result['transaction'],
-                'new_balance' => $result['new_balance'],
+                'transaction' => $result->transaction,
+                'new_balance' => $result->newBalance,
             ],
             Response::HTTP_OK
         );
@@ -267,10 +267,10 @@ class TransactionController extends Controller
             [
                 'success' => true,
                 'message' => 'Перевод выполнен успешно',
-                'out_transaction' => $result['out_transaction'],
-                'in_transaction' => $result['in_transaction'],
-                'from_user_balance' => $result['from_user_balance'],
-                'to_user_balance' => $result['to_user_balance'],
+                'out_transaction' => $result->outTransaction,
+                'in_transaction' => $result->inTransaction,
+                'from_user_balance' => $result->fromUserBalance,
+                'to_user_balance' => $result->toUserBalance,
             ],
             Response::HTTP_OK
         );

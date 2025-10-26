@@ -28,10 +28,7 @@ class UserBalanceServiceTest extends TestCase
             new DepositDto(1, 500.00, 'Test deposit')
         );
 
-        $this->assertArrayHasKey('transaction', $result);
-        $this->assertArrayHasKey('new_balance', $result);
-        $this->assertEquals(500.00, $result['new_balance']);
-
+        $this->assertEquals(500.00, $result->newBalance);
         $this->assertDatabaseHas('user_balance', [
             'user_id' => 1,
             'amount' => 500.00,
@@ -46,7 +43,7 @@ class UserBalanceServiceTest extends TestCase
             new DepositDto(1, 300.00, 'Additional deposit')
         );
 
-        $this->assertEquals(500.00, $result['new_balance']);
+        $this->assertEquals(500.00, $result->newBalance);
         $this->assertDatabaseHas('user_balance', [
             'user_id' => 1,
             'amount' => 500.00,
@@ -61,7 +58,7 @@ class UserBalanceServiceTest extends TestCase
             new WithdrawDto(1, 200.00, 'Test withdrawal')
         );
 
-        $this->assertEquals(800.00, $result['new_balance']);
+        $this->assertEquals(800.00, $result->newBalance);
         $this->assertDatabaseHas('user_balance', [
             'user_id' => 1,
             'amount' => 800.00,
@@ -87,10 +84,8 @@ class UserBalanceServiceTest extends TestCase
             new TransferDto(1, 2, 150, 'Test transfer')
         );
 
-        $this->assertArrayHasKey('out_transaction', $result);
-        $this->assertArrayHasKey('in_transaction', $result);
-        $this->assertEquals(850.00, $result['from_user_balance']);
-        $this->assertEquals(650.00, $result['to_user_balance']);
+        $this->assertEquals(850.00, $result->fromUserBalance);
+        $this->assertEquals(650.00, $result->toUserBalance);
 
         $this->assertDatabaseHas('user_balance', [
             'user_id' => 1,
