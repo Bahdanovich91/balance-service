@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\LogService;
 use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -24,7 +25,8 @@ use OpenApi\Annotations as OA;
 class BalanceController extends Controller
 {
     public function __construct(
-        private readonly UserBalanceService $balanceService
+        private readonly UserBalanceService $balanceService,
+        private readonly LogService $log
     ) {
     }
 
@@ -66,6 +68,12 @@ class BalanceController extends Controller
         try {
             $balance = $this->balanceService->getBalance($userId);
         } catch (\Throwable $e) {
+            $this->log->write('balance_errors.log', sprintf(
+                'Balance request failed - User ID: %d, Error: %s',
+                $userId,
+                $e->getMessage()
+            ));
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

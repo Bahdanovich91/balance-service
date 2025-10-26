@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\UserBalance;
+use App\Services\LogService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -38,5 +39,14 @@ class BalanceApiControllerTest extends TestCase
                 'success' => false,
                 'message' => 'User not found (ID: 1)',
             ]);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->mock(LogService::class, function ($mock) {
+            $mock->shouldReceive('write')->andReturnNull();
+        });
     }
 }
