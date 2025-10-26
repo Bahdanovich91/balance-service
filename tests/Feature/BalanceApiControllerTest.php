@@ -29,20 +29,14 @@ class BalanceApiControllerTest extends TestCase
             ]);
     }
 
-    public function test_get_balance_creates_user_if_not_exists(): void
+    public function test_get_error_if_user_not_exists(): void
     {
         $response = $this->getJson('/api/balance/1');
 
-        $response->assertStatus(200)
+        $response->assertStatus(404)
             ->assertJson([
-                'success' => true,
-                'user_id' => 1,
-                'balance' => 0.0,
+                'success' => false,
+                'message' => 'User not found (ID: 1)',
             ]);
-
-        $this->assertDatabaseHas('user_balance', [
-            'user_id' => 1,
-            'amount' => 0.0,
-        ]);
     }
 }

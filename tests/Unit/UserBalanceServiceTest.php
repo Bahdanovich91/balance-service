@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Exceptions\InsufficientFundsException;
+use App\Exceptions\UserNotFoundException;
 use App\Models\UserBalance;
 use App\Repositories\UserBalanceRepository;
 use App\Services\TransactionService;
@@ -131,15 +132,10 @@ class UserBalanceServiceTest extends TestCase
         $this->assertEquals(350.00, $balance);
     }
 
-    public function test_get_balance_creates_user_if_not_exists(): void
+    public function test_get_exception_if_user_not_exists(): void
     {
-        $balance = $this->userBalanceService->getBalance(1);
-
-        $this->assertEquals(0.0, $balance);
-        $this->assertDatabaseHas('user_balance', [
-            'user_id' => 1,
-            'amount' => 0.0,
-        ]);
+        $this->expectException(UserNotFoundException::class);
+        $this->userBalanceService->getBalance(1);
     }
 
     public function test_transfer_with_array_data(): void

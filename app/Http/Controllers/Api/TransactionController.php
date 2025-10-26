@@ -83,22 +83,4 @@ class TransactionController extends Controller
             'to_user_balance' => $result['to_user_balance'],
         ], Response::HTTP_OK);
     }
-
-    public function balance(int $userId): JsonResponse
-    {
-        try {
-            $balance = $this->balanceService->getBalance($userId);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], $e->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        return response()->json([
-            'success' => true,
-            'user_id' => $userId,
-            'balance' => $balance,
-        ], Response::HTTP_OK);
-    }
 }
