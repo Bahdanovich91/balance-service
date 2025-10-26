@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\TransferRequest;
 use App\Http\Requests\WithdrawRequest;
+use App\Services\LogService;
 use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -16,7 +17,8 @@ use OpenApi\Annotations as OA;
 class TransactionController extends Controller
 {
     public function __construct(
-        private readonly UserBalanceService $balanceService
+        private readonly UserBalanceService $balanceService,
+        private readonly LogService $log
     ) {
     }
 
@@ -67,6 +69,14 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->deposit($request->validated());
         } catch (\Throwable $e) {
+            $data = $request->only(['user_id', 'amount']);
+            $this->log->write('deposits_errors.log', sprintf(
+                'Deposit failed - User ID: %d, Amount: %.2f, Error: %s',
+                $data['user_id'],
+                $data['amount'],
+                $e->getMessage()
+            ));
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -139,6 +149,14 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->withdraw($request->validated());
         } catch (\Throwable $e) {
+            $data = $request->only(['user_id', 'amount']);
+            $this->log->write('withdrawals_errors.log', sprintf(
+                'Withdrawal failed - User ID: %d, Amount: %.2f, Error: %s',
+                $data['user_id'],
+                $data['amount'],
+                $e->getMessage()
+            ));
+
             return response()->json(
                 [
                 'success' => false,
@@ -222,6 +240,15 @@ class TransactionController extends Controller
         try {
             $result = $this->balanceService->transfer($request->validated());
         } catch (\Throwable $e) {
+            $data = $request->only(['from_user_id', 'to_user_id', 'amount']);
+            $this->log->write('transfers_errors.log', sprintf(
+                'Transfer failed - From User ID: %d, To User ID: %d, Amount: %.2f, Error: %s',
+                $data['from_user_id'],
+                $data['to_user_id'],
+                $data['amount'],
+                $e->getMessage()
+            ));
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

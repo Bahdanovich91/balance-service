@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\UserBalance;
+use App\Services\LogService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -217,5 +218,14 @@ class TransactionApiControllerTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['from_user_id']);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->mock(LogService::class, function ($mock) {
+            $mock->shouldReceive('write')->andReturnNull();
+        });
     }
 }
