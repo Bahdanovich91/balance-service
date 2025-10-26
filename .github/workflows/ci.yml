@@ -50,4 +50,4 @@ jobs:
 
       # 8. Проверка зависимостей
       - name: Composer Security Audit
-        run: composer audit
+        run: composer audit --format=json | jq '.advisories | length == 0'
