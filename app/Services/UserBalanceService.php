@@ -76,7 +76,6 @@ class UserBalanceService
                 throw new InsufficientFundsException();
             }
 
-            // Обновляем балансы
             $newFromBalance = $fromUserBalance->amount - $data['amount'];
             $newToBalance = $toUserBalance->amount + $data['amount'];
 
