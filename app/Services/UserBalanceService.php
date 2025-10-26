@@ -10,11 +10,11 @@ use App\Exceptions\UserNotFoundException;
 use App\Repositories\UserBalanceRepository;
 use Illuminate\Support\Facades\DB;
 
-class UserBalanceService
+readonly class UserBalanceService
 {
     public function __construct(
-        private readonly UserBalanceRepository $userBalanceRepository,
-        private readonly TransactionService    $transactionService,
+        private UserBalanceRepository $userBalanceRepository,
+        private TransactionService    $transactionService,
     ) {
     }
 

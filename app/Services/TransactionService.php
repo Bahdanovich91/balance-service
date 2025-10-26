@@ -7,10 +7,10 @@ use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
 use App\ValueObject\TransactionParams;
 
-class TransactionService
+readonly class TransactionService
 {
     public function __construct(
-        private readonly TransactionRepository $transactionRepository,
+        private TransactionRepository $transactionRepository,
     ) {
     }
 
