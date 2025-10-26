@@ -22,12 +22,13 @@ class TransactionService
         ?string         $comment = null,
     ): Transaction {
         return $this->transactionRepository->create(
-            (new TransactionParams())
-                ->setFromUserId($fromUserId)
-                ->setToUserId($toUserId)
-                ->setAmount($amount)
-                ->setType($type)
-                ->setComment($comment)
+            (new TransactionParams(
+                toUserId: $toUserId,
+                amount: $amount,
+                type: $type,
+                fromUserId: $fromUserId,
+                comment: $comment,
+            ))
         );
     }
 }
