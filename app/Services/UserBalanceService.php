@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\TransactionType;
 use App\Exceptions\InsufficientFundsException;
+use App\Exceptions\UserNotFoundException;
 use App\Repositories\UserBalanceRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -109,7 +110,10 @@ class UserBalanceService
 
     public function getBalance(int $userId): float
     {
-        $userBalance = $this->userBalanceRepository->findOrCreate($userId);
+        $userBalance = $this->userBalanceRepository->findByUserId($userId);
+        if (!$userBalance) {
+            throw new UserNotFoundException($userId);
+        }
 
         return (float)$userBalance->amount;
     }

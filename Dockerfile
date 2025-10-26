@@ -20,6 +20,13 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip opcache intl xml dom
 
+# Установка Xdebug для code coverage
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Настройка Xdebug для coverage
+RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 # Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

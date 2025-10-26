@@ -42,62 +42,24 @@ docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
 ```
 
-## API Endpoints
-
-### 1. Зачисление средств
-```http
-POST /api/deposit
-Content-Type: application/json
-
-{
-    "user_id": 1,
-    "amount": 500.00,
-    "comment": "Пополнение через карту"
-}
-```
-
-### 2. Списание средств
-```http
-POST /api/withdraw
-Content-Type: application/json
-
-{
-    "user_id": 1,
-    "amount": 200.00,
-    "comment": "Покупка подписки"
-}
-```
-
-### 3. Перевод между пользователями
-```http
-POST /api/transfer
-Content-Type: application/json
-
-{
-    "from_user_id": 1,
-    "to_user_id": 2,
-    "amount": 150.00,
-    "comment": "Перевод другу"
-}
-```
-
-### 4. Получение баланса
-```http
-GET /api/balance/{user_id}
-```
-
-
 ## Тестирование
 
 ```bash
 # Запуск всех тестов
 docker compose exec app php artisan test
 
-# Запуск с покрытием
-docker compose exec app php artisan test --coverage
-
 # Запуск конкретного теста
 docker compose exec app php artisan test tests/Feature/BalanceApiTest.php
+```
+
+## Swagger документация
+
+```bash
+# Генерация Swagger документации
+docker compose exec app php artisan l5-swagger:generate
+
+# Доступ к документаци
+# http://localhost:8080/api/documentation
 ```
 ## Запуск phpstan и cs-fixer
 
