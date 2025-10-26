@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\UserBalance;
-use App\Services\LogService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class BalanceApiControllerTest extends TestCase
@@ -45,8 +45,6 @@ class BalanceApiControllerTest extends TestCase
     {
         parent::setUp();
 
-        $this->mock(LogService::class, function ($mock) {
-            $mock->shouldReceive('write')->andReturnNull();
-        });
+        Log::spy();
     }
 }

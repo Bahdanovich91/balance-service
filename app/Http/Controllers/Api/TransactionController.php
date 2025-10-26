@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Dto\DepositDto;
+use App\Dto\TransferDto;
+use App\Dto\WithdrawDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\TransferRequest;
 use App\Http\Requests\WithdrawRequest;
-use App\Services\LogService;
 use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Annotations as OA;
 
 class TransactionController extends Controller
 {
     public function __construct(
-        private readonly UserBalanceService $balanceService,
-        private readonly LogService $log
+        private readonly UserBalanceService $balanceService
     ) {
     }
 
@@ -67,29 +69,31 @@ class TransactionController extends Controller
     public function deposit(DepositRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->deposit($request->validated());
+            $result = $this->balanceService->deposit(new DepositDto(...$request->validated()));
         } catch (\Throwable $e) {
-            $data = $request->only(['user_id', 'amount']);
-            $this->log->write('deposits_errors.log', sprintf(
+            Log::error(sprintf(
                 'Deposit failed - User ID: %d, Amount: %.2f, Error: %s',
-                $data['user_id'],
-                $data['amount'],
+                $request->user_id,
+                $request->amount,
                 $e->getMessage()
             ));
 
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], $e->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ],
+                $e->getCode()
+            );
         }
 
         return response()->json(
             [
-            'success' => true,
-            'message' => 'Средства успешно зачислены',
-            'transaction' => $result['transaction'],
-            'new_balance' => $result['new_balance'],
-        ],
+                'success' => true,
+                'message' => 'Средства успешно зачислены',
+                'transaction' => $result->transaction,
+                'new_balance' => $result->newBalance,
+            ],
             Response::HTTP_OK
         );
     }
@@ -147,31 +151,33 @@ class TransactionController extends Controller
     public function withdraw(WithdrawRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->withdraw($request->validated());
+            $result = $this->balanceService->withdraw(new WithdrawDto(...$request->validated()));
         } catch (\Throwable $e) {
-            $data = $request->only(['user_id', 'amount']);
-            $this->log->write('withdrawals_errors.log', sprintf(
+            Log::error(sprintf(
                 'Withdrawal failed - User ID: %d, Amount: %.2f, Error: %s',
-                $data['user_id'],
-                $data['amount'],
+                $request->user_id,
+                $request->amount,
                 $e->getMessage()
             ));
 
             return response()->json(
                 [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ],
-                $e->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ],
+                $e->getCode()
             );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Средства успешно списаны',
-            'transaction' => $result['transaction'],
-            'new_balance' => $result['new_balance'],
-        ], Response::HTTP_OK);
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Средства успешно списаны',
+                'transaction' => $result->transaction,
+                'new_balance' => $result->newBalance,
+            ],
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -238,30 +244,35 @@ class TransactionController extends Controller
     public function transfer(TransferRequest $request): JsonResponse
     {
         try {
-            $result = $this->balanceService->transfer($request->validated());
+            $result = $this->balanceService->transfer(new TransferDto(...$request->validated()));
         } catch (\Throwable $e) {
-            $data = $request->only(['from_user_id', 'to_user_id', 'amount']);
-            $this->log->write('transfers_errors.log', sprintf(
+            Log::error(sprintf(
                 'Transfer failed - From User ID: %d, To User ID: %d, Amount: %.2f, Error: %s',
-                $data['from_user_id'],
-                $data['to_user_id'],
-                $data['amount'],
+                $request->from_user_id,
+                $request->to_user_id,
+                $request->amount,
                 $e->getMessage()
             ));
 
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], $e->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ],
+                $e->getCode()
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Перевод выполнен успешно',
-            'out_transaction' => $result['out_transaction'],
-            'in_transaction' => $result['in_transaction'],
-            'from_user_balance' => $result['from_user_balance'],
-            'to_user_balance' => $result['to_user_balance'],
-        ], Response::HTTP_OK);
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Перевод выполнен успешно',
+                'out_transaction' => $result->outTransaction,
+                'in_transaction' => $result->inTransaction,
+                'from_user_balance' => $result->fromUserBalance,
+                'to_user_balance' => $result->toUserBalance,
+            ],
+            Response::HTTP_OK
+        );
     }
 }

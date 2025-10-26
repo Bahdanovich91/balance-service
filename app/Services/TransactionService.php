@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\TransactionType;
@@ -7,10 +9,10 @@ use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
 use App\ValueObject\TransactionParams;
 
-class TransactionService
+readonly class TransactionService
 {
     public function __construct(
-        private readonly TransactionRepository $transactionRepository,
+        private TransactionRepository $transactionRepository,
     ) {
     }
 
@@ -22,12 +24,13 @@ class TransactionService
         ?string         $comment = null,
     ): Transaction {
         return $this->transactionRepository->create(
-            (new TransactionParams())
-                ->setFromUserId($fromUserId)
-                ->setToUserId($toUserId)
-                ->setAmount($amount)
-                ->setType($type)
-                ->setComment($comment)
+            (new TransactionParams(
+                toUserId: $toUserId,
+                amount: $amount,
+                type: $type,
+                fromUserId: $fromUserId,
+                comment: $comment,
+            ))
         );
     }
 }
