@@ -14,11 +14,17 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    librdkafka-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка PHP расширений
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip opcache intl xml dom
+
+# Установка PECL и rdkafka
+RUN pecl install rdkafka \
+    && docker-php-ext-enable rdkafka
 
 # Установка Xdebug для code coverage
 RUN pecl install xdebug \

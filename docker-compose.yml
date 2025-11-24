@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     networks:
       - balance_network
+      - microservices_net
 
   # PHP-FPM контейнер
   app:
@@ -22,17 +23,21 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      KAFKA_BROKER: kafka:9092
+      ELASTICSEARCH_HOST: http://elasticsearch:9200
     depends_on:
       - postgres
     networks:
       - balance_network
+      - microservices_net
 
   # Nginx веб-сервер
   nginx:
     image: nginx:alpine
     container_name: balance_nginx
     ports:
-      - "8080:80"
+      - "8090:80"
     volumes:
       - .:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -40,6 +45,7 @@ services:
       - app
     networks:
       - balance_network
+      - microservices_net
 
 
 volumes:
@@ -48,3 +54,5 @@ volumes:
 networks:
   balance_network:
     driver: bridge
+  microservices_net:
+    external: true
