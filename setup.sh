@@ -21,6 +21,10 @@ sleep 10
 echo "📦 Установка зависимостей..."
 docker compose exec app composer install
 
+# Установка Kafka и Elasticsearch пакетов
+echo "📦 Установка Kafka и Elasticsearch пакетов..."
+docker compose exec app composer require enqueue/rdkafka elasticsearch/elasticsearch --no-interaction
+
 # Создание .env файла если его нет
 if [ ! -f ".env" ]; then
     echo "📝 Создание .env файла..."
@@ -38,6 +42,23 @@ docker compose exec app sed -i 's/DB_PASSWORD=/DB_PASSWORD=balance_password/' .e
 
 # Удаление комментариев и лишних строк
 docker compose exec app sed -i '/^# DB_/d' .env
+
+# Настройка Kafka и Elasticsearch
+echo "🔧 Настройка Kafka и Elasticsearch..."
+docker compose exec app bash -c 'cat >> .env << EOF
+
+###> kafka ###
+KAFKA_BROKER=kafka:9092
+KAFKA_TOPIC_BALANCE_EVENTS=balance-events
+KAFKA_TOPIC_BALANCE_COMMANDS=balance-commands
+KAFKA_CONSUMER_GROUP=balance-service
+###< kafka ###
+
+###> elasticsearch ###
+ELASTICSEARCH_HOST=http://elasticsearch:9200
+ELASTICSEARCH_INDEX=microservices-logs
+###< elasticsearch ###
+EOF'
 
 # Генерация ключа приложения
 echo "🔑 Генерация ключа приложения..."

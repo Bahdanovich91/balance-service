@@ -15,6 +15,7 @@ use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
 use App\Repositories\UserBalanceRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 
 readonly class UserBalanceService
 {
@@ -22,6 +23,11 @@ readonly class UserBalanceService
         private UserBalanceRepository $userBalanceRepository,
         private TransactionService    $transactionService,
     ) {
+    }
+
+    private function getKafkaService(): ?KafkaService
+    {
+        return App::bound(KafkaService::class) ? App::make(KafkaService::class) : null;
     }
 
     public function deposit(DepositDto $depositDto): DepositResultDto
@@ -38,6 +44,19 @@ readonly class UserBalanceService
                 type: TransactionType::Deposit,
                 comment: $depositDto->comment
             );
+
+            // Отправляем событие в Kafka
+            $kafkaService = $this->getKafkaService();
+            if ($kafkaService) {
+                $kafkaService->sendEvent([
+                    'type' => 'balance_deposited',
+                    'user_id' => $depositDto->user_id,
+                    'amount' => $depositDto->amount,
+                    'new_balance' => $newBalance,
+                    'transaction_id' => $transaction->id,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            }
 
             return new DepositResultDto($transaction, $newBalance);
         });
@@ -61,6 +80,19 @@ readonly class UserBalanceService
                 type: TransactionType::Withdraw,
                 comment: $withdrawDto->comment
             );
+
+            // Отправляем событие в Kafka
+            $kafkaService = $this->getKafkaService();
+            if ($kafkaService) {
+                $kafkaService->sendEvent([
+                    'type' => 'balance_withdrawn',
+                    'user_id' => $withdrawDto->user_id,
+                    'amount' => $withdrawDto->amount,
+                    'new_balance' => $newBalance,
+                    'transaction_id' => $transaction->id,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            }
 
             return new WithdrawResultDto($transaction, $newBalance);
         });
@@ -97,6 +129,21 @@ readonly class UserBalanceService
                 fromUserId: $transferDto->from_user_id,
                 comment: $transferDto->comment
             );
+
+            // Отправляем событие в Kafka
+            $kafkaService = $this->getKafkaService();
+            if ($kafkaService) {
+                $kafkaService->sendEvent([
+                    'type' => 'balance_transferred',
+                    'from_user_id' => $transferDto->from_user_id,
+                    'to_user_id' => $transferDto->to_user_id,
+                    'amount' => $transferDto->amount,
+                    'from_balance' => $newFromBalance,
+                    'to_balance' => $newToBalance,
+                    'transaction_id' => $outTransaction->id,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            }
 
             return new TransferResultDto(
                 $outTransaction,
