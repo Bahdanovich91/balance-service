@@ -10,13 +10,15 @@ use Illuminate\Support\Facades\Log;
 class KafkaService
 {
     private $context;
+
     private $producer;
+
     private string $eventsTopic;
 
     public function __construct(string $kafkaBroker, string $eventsTopic = 'balance-events')
     {
         $this->eventsTopic = $eventsTopic;
-        
+
         $factory = new RdKafkaConnectionFactory([
             'global' => [
                 'group.id' => 'balance-service',
@@ -71,4 +73,3 @@ class KafkaService
         }
     }
 }
-

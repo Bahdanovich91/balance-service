@@ -10,4 +10,3 @@ return [
     ],
     'consumer_group' => env('KAFKA_CONSUMER_GROUP', 'balance-service'),
 ];
-

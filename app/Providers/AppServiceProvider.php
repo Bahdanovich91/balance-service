@@ -14,12 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(KafkaService::class, function ($app) {
-            return new KafkaService(
-                config('kafka.broker'),
-                config('kafka.topics.balance_events')
-            );
-        });
+        $this->app->singleton(KafkaService::class, fn($app) => new KafkaService(
+            config('kafka.broker'),
+            config('kafka.topics.balance_events')
+        ));
     }
 
     /**

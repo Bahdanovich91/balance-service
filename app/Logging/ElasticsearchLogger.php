@@ -11,18 +11,19 @@ use Monolog\LogRecord;
 class ElasticsearchLogger extends AbstractProcessingHandler
 {
     private $client;
+
     private string $index;
 
     public function __construct()
     {
         parent::__construct();
 
-        $hosts = [env('ELASTICSEARCH_HOST', 'http://elasticsearch:9200')];
+        $hosts = config('elasticsearch.hosts');
         $this->client = ClientBuilder::create()
             ->setHosts($hosts)
             ->build();
 
-        $this->index = env('ELASTICSEARCH_INDEX', 'microservices-logs');
+        $this->index = config('elasticsearch.index');
     }
 
     protected function write(LogRecord $record): void
@@ -35,7 +36,7 @@ class ElasticsearchLogger extends AbstractProcessingHandler
                     'level' => $record->level->getName(),
                     'message' => $record->message,
                     'context' => $record->context,
-                    'service' => 'balance-service',
+                    'service' => config('elasticsearch.service'),
                 ],
             ];
 
@@ -45,4 +46,3 @@ class ElasticsearchLogger extends AbstractProcessingHandler
         }
     }
 }
-

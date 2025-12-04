@@ -14,8 +14,8 @@ use App\Enums\TransactionType;
 use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
 use App\Repositories\UserBalanceRepository;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 
 readonly class UserBalanceService
 {
@@ -23,11 +23,6 @@ readonly class UserBalanceService
         private UserBalanceRepository $userBalanceRepository,
         private TransactionService    $transactionService,
     ) {
-    }
-
-    private function getKafkaService(): ?KafkaService
-    {
-        return App::bound(KafkaService::class) ? App::make(KafkaService::class) : null;
     }
 
     public function deposit(DepositDto $depositDto): DepositResultDto
@@ -162,5 +157,10 @@ readonly class UserBalanceService
         }
 
         return (float)$userBalance->amount;
+    }
+
+    private function getKafkaService(): ?KafkaService
+    {
+        return App::bound(KafkaService::class) ? App::make(KafkaService::class) : null;
     }
 }

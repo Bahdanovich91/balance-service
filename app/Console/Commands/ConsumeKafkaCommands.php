@@ -11,6 +11,7 @@ use Illuminate\Console\Command;
 class ConsumeKafkaCommands extends Command
 {
     protected $signature = 'kafka:consume';
+
     protected $description = 'Consume Kafka commands for balance service';
 
     public function handle(KafkaService $kafkaService, BalanceCommandHandler $handler): int
@@ -20,7 +21,9 @@ class ConsumeKafkaCommands extends Command
 
         $topic = config('kafka.topics.balance_commands');
 
-        while (true) {
+        /** @var bool $running */
+        $running = true;
+        while ($running) {
             try {
                 $kafkaService->consume($topic, function (array $data) use ($handler) {
                     $this->info('Received command: ' . ($data['command'] ?? 'unknown'));
@@ -35,4 +38,3 @@ class ConsumeKafkaCommands extends Command
         return Command::SUCCESS;
     }
 }
-

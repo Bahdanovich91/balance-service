@@ -69,6 +69,7 @@ readonly class BalanceCommandHandler
                     'balance' => $balance,
                     'amount' => $amount,
                 ]);
+
                 return;
             }
 
@@ -94,4 +95,3 @@ readonly class BalanceCommandHandler
         }
     }
 }
-
