@@ -8,6 +8,8 @@
     "require": {
         "php": "^8.2",
         "darkaonline/l5-swagger": "^9.0",
+        "elasticsearch/elasticsearch": "^8.19",
+        "enqueue/rdkafka": "^0.10.26",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },
