@@ -2,7 +2,6 @@
 
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
-use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
 return [
@@ -48,7 +47,10 @@ return [
 
         'elasticsearch' => [
             'driver' => 'custom',
-            'via' => \App\Logging\ElasticsearchLogger::class,
+            'via' => function ($app) {
+                $clientService = $app->make(\App\Services\ElasticsearchClientService::class);
+                return new \App\Handler\Logging\ElasticsearchLogger($clientService);
+            },
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
