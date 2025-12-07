@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Handler\KafkaMessage\Strategy;
 
-use App\Dto\WithdrawDto;
+use App\Dto\Request\WithdrawDto;
+use App\Services\KafkaService;
 use App\Services\UserBalanceService;
 use Illuminate\Support\Facades\Log;
 
-final class WithdrawCommandHandler implements CommandHandlerInterface
+final readonly class WithdrawCommandHandler implements CommandHandlerInterface
 {
-    public function __construct(private UserBalanceService $balanceService)
-    {
+    public function __construct(
+        private UserBalanceService $balanceService,
+        private KafkaService       $kafkaService,
+    ) {
     }
 
     public function isApplicable(string $command): bool
@@ -21,16 +24,37 @@ final class WithdrawCommandHandler implements CommandHandlerInterface
 
     public function handle(array $data): void
     {
-        $userId = (int)($data['user_id'] ?? 0);
-        $amount = (float)($data['amount'] ?? 0);
+        $withdrawDto = new WithdrawDto(user_id: $data['user_id'], amount: $data['amount'], comment: 'Order payment via Kafka');
 
         try {
-            $withdrawDto = new WithdrawDto(user_id: $userId, amount: $amount, comment: 'Order payment via Kafka');
-            $this->balanceService->withdraw($withdrawDto);
+            $withdrawResultDto = $this->balanceService->withdraw($withdrawDto);
 
-            Log::info('Balance withdrawal completed', ['user_id' => $userId, 'amount' => $amount]);
+            $this->kafkaService->sendEvent([
+                'type' => 'balance_withdrawn',
+                'user_id' => $withdrawDto->user_id,
+                'amount' => $withdrawDto->amount,
+                'new_balance' => $withdrawResultDto->newBalance,
+                'transaction_id' => $withdrawResultDto->transaction->id,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            Log::info(
+                'Balance withdrawal completed',
+                [
+                    'user_id' => $withdrawDto->user_id,
+                    'amount' => $withdrawDto->amount,
+                    'new_balance' => $withdrawResultDto->newBalance
+                ]
+            );
         } catch (\Throwable $e) {
-            Log::error('Balance withdrawal failed', ['user_id' => $userId, 'amount' => $amount, 'error' => $e->getMessage()]);
+            Log::error(
+                'Balance withdrawal failed',
+                [
+                    'user_id' => $withdrawDto->user_id,
+                    'amount' => $withdrawDto->amount,
+                    'error' => $e->getMessage()
+                ]
+            );
         }
     }
 }

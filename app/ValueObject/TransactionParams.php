@@ -6,40 +6,15 @@ namespace App\ValueObject;
 
 use App\Enums\TransactionType;
 
-final class TransactionParams
+final readonly class TransactionParams
 {
     public function __construct(
-        private readonly int $toUserId,
-        private readonly float $amount,
-        private readonly TransactionType $type,
-        private readonly ?int $fromUserId = null,
-        private readonly ?string $comment = null,
+        private int             $toUserId,
+        private float           $amount,
+        private TransactionType $type,
+        private ?int            $fromUserId = null,
+        private ?string         $comment = null,
     ) {
-    }
-
-    public function getFromUserId(): ?int
-    {
-        return $this->fromUserId;
-    }
-
-    public function getToUserId(): int
-    {
-        return $this->toUserId;
-    }
-
-    public function getType(): TransactionType
-    {
-        return $this->type;
-    }
-
-    public function getAmount(): float
-    {
-        return $this->amount;
-    }
-
-    public function getComment(): ?string
-    {
-        return $this->comment;
     }
 
     public function toArray(): array
