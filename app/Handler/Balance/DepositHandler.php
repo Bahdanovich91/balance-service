@@ -22,8 +22,9 @@ readonly class DepositHandler
     public function __invoke(DepositDto $dto): DepositResultDto
     {
         DB::beginTransaction();
+
         try {
-            $userBalance    = $this->userBalanceRepository->findOrCreate($dto->user_id);
+            $userBalance = $this->userBalanceRepository->findOrCreate($dto->user_id);
             $newUserBalance = $userBalance->amount + $dto->amount;
 
             $this->userBalanceRepository->updateBalance($userBalance, $newUserBalance);
@@ -35,6 +36,7 @@ readonly class DepositHandler
             return new DepositResultDto($transaction, $newUserBalance);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             throw $e;
         }
     }

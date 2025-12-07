@@ -9,12 +9,12 @@ use App\Dto\Request\TransferDto;
 use App\Dto\Request\WithdrawDto;
 use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
+use App\Handler\Balance\DepositHandler;
+use App\Handler\Balance\TransferHandler;
+use App\Handler\Balance\WithdrawHandler;
 use App\Models\UserBalance;
 use App\Repositories\UserBalanceRepository;
 use App\Services\TransactionService;
-use App\Handler\Balance\DepositHandler;
-use App\Handler\Balance\WithdrawHandler;
-use App\Handler\Balance\TransferHandler;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -23,7 +23,9 @@ class UserBalanceHandlerTest extends TestCase
     use DatabaseMigrations;
 
     private DepositHandler $depositHandler;
+
     private WithdrawHandler $withdrawHandler;
+
     private TransferHandler $transferHandler;
 
     public function test_deposit_creates_new_user_balance(): void
@@ -113,7 +115,7 @@ class UserBalanceHandlerTest extends TestCase
     {
         $this->expectException(UserNotFoundException::class);
         $userBalanceRepository = $this->app->make(UserBalanceRepository::class);
-            $userBalanceRepository->findByUserId(1) ?? throw new UserNotFoundException(1);
+        $userBalanceRepository->findByUserId(1) ?? throw new UserNotFoundException(1);
     }
 
     protected function setUp(): void
@@ -123,7 +125,7 @@ class UserBalanceHandlerTest extends TestCase
         $transactionService = $this->app->make(TransactionService::class);
         $userBalanceRepository = $this->app->make(UserBalanceRepository::class);
 
-        $this->depositHandler  = new DepositHandler($userBalanceRepository, $transactionService);
+        $this->depositHandler = new DepositHandler($userBalanceRepository, $transactionService);
         $this->withdrawHandler = new WithdrawHandler($userBalanceRepository, $transactionService);
         $this->transferHandler = new TransferHandler($userBalanceRepository, $transactionService);
     }

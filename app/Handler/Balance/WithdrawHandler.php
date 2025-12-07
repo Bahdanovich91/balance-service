@@ -23,6 +23,7 @@ readonly class WithdrawHandler
     public function __invoke(WithdrawDto $dto): WithdrawResultDto
     {
         DB::beginTransaction();
+
         try {
             $userBalance = $this->userBalanceRepository->findOrFail($dto->user_id);
             if ($userBalance->amount < $dto->amount) {
@@ -39,6 +40,7 @@ readonly class WithdrawHandler
             return new WithdrawResultDto($transaction, $newUserBalance);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             throw $e;
         }
     }
