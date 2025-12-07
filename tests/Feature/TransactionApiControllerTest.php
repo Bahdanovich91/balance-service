@@ -220,7 +220,6 @@ class TransactionApiControllerTest extends TestCase
             ->assertJsonValidationErrors(['from_user_id']);
     }
 
-    //TODO Добавить мок для KafkaService
     protected function setUp(): void
     {
         parent::setUp();

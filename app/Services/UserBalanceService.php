@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Dto\DepositDto;
+use App\Dto\Request\DepositDto;
+use App\Dto\Request\TransferDto;
+use App\Dto\Request\WithdrawDto;
 use App\Dto\Result\DepositResultDto;
 use App\Dto\Result\TransferResultDto;
 use App\Dto\Result\WithdrawResultDto;
-use App\Dto\TransferDto;
-use App\Dto\WithdrawDto;
 use App\Enums\TransactionType;
 use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
 use App\Repositories\UserBalanceRepository;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 
 readonly class UserBalanceService
@@ -29,31 +28,13 @@ readonly class UserBalanceService
     {
         return DB::transaction(function () use ($depositDto) {
             $userBalance = $this->userBalanceRepository->findOrCreate($depositDto->user_id);
-            $newBalance = $userBalance->amount + $depositDto->amount;
+            $newUserBalance = $userBalance->amount + $depositDto->amount;
 
-            $this->userBalanceRepository->updateBalance($userBalance, $newBalance);
+            $this->userBalanceRepository->updateBalance($userBalance, $newUserBalance);
 
-            $transaction = $this->transactionService->create(
-                toUserId: $depositDto->user_id,
-                amount: $depositDto->amount,
-                type: TransactionType::Deposit,
-                comment: $depositDto->comment
-            );
+            $transaction = $this->transactionService->createFromDto($depositDto, TransactionType::Deposit);
 
-            // Отправляем событие в Kafka
-            $kafkaService = $this->getKafkaService();
-            if ($kafkaService) {
-                $kafkaService->sendEvent([
-                    'type' => 'balance_deposited',
-                    'user_id' => $depositDto->user_id,
-                    'amount' => $depositDto->amount,
-                    'new_balance' => $newBalance,
-                    'transaction_id' => $transaction->id,
-                    'timestamp' => now()->toIso8601String(),
-                ]);
-            }
-
-            return new DepositResultDto($transaction, $newBalance);
+            return new DepositResultDto($transaction, $newUserBalance);
         });
     }
 
@@ -66,30 +47,12 @@ readonly class UserBalanceService
                 throw new InsufficientFundsException();
             }
 
-            $newBalance = $userBalance->amount - $withdrawDto->amount;
-            $this->userBalanceRepository->updateBalance($userBalance, $newBalance);
+            $newUserBalance = $userBalance->amount - $withdrawDto->amount;
+            $this->userBalanceRepository->updateBalance($userBalance, $newUserBalance);
 
-            $transaction = $this->transactionService->create(
-                toUserId: $withdrawDto->user_id,
-                amount: $withdrawDto->amount,
-                type: TransactionType::Withdraw,
-                comment: $withdrawDto->comment
-            );
+            $transaction = $this->transactionService->createFromDto($withdrawDto, TransactionType::Withdraw);
 
-            // Отправляем событие в Kafka
-            $kafkaService = $this->getKafkaService();
-            if ($kafkaService) {
-                $kafkaService->sendEvent([
-                    'type' => 'balance_withdrawn',
-                    'user_id' => $withdrawDto->user_id,
-                    'amount' => $withdrawDto->amount,
-                    'new_balance' => $newBalance,
-                    'transaction_id' => $transaction->id,
-                    'timestamp' => now()->toIso8601String(),
-                ]);
-            }
-
-            return new WithdrawResultDto($transaction, $newBalance);
+            return new WithdrawResultDto($transaction, $newUserBalance);
         });
     }
 
@@ -103,48 +66,20 @@ readonly class UserBalanceService
                 throw new InsufficientFundsException();
             }
 
-            $newFromBalance = $fromUserBalance->amount - $transferDto->amount;
-            $newToBalance = $toUserBalance->amount + $transferDto->amount;
+            $newFromUserBalance = $fromUserBalance->amount - $transferDto->amount;
+            $newToUserBalance = $toUserBalance->amount + $transferDto->amount;
 
-            $this->userBalanceRepository->updateBalance($fromUserBalance, $newFromBalance);
-            $this->userBalanceRepository->updateBalance($toUserBalance, $newToBalance);
+            $this->userBalanceRepository->updateBalance($fromUserBalance, $newFromUserBalance);
+            $this->userBalanceRepository->updateBalance($toUserBalance, $newToUserBalance);
 
-            $outTransaction = $this->transactionService->create(
-                toUserId: $transferDto->to_user_id,
-                amount: $transferDto->amount,
-                type: TransactionType::TransferOut,
-                fromUserId: $transferDto->from_user_id,
-                comment: $transferDto->comment
-            );
-
-            $inTransaction = $this->transactionService->create(
-                toUserId: $transferDto->to_user_id,
-                amount: $transferDto->amount,
-                type: TransactionType::TransferIn,
-                fromUserId: $transferDto->from_user_id,
-                comment: $transferDto->comment
-            );
-
-            // Отправляем событие в Kafka
-            $kafkaService = $this->getKafkaService();
-            if ($kafkaService) {
-                $kafkaService->sendEvent([
-                    'type' => 'balance_transferred',
-                    'from_user_id' => $transferDto->from_user_id,
-                    'to_user_id' => $transferDto->to_user_id,
-                    'amount' => $transferDto->amount,
-                    'from_balance' => $newFromBalance,
-                    'to_balance' => $newToBalance,
-                    'transaction_id' => $outTransaction->id,
-                    'timestamp' => now()->toIso8601String(),
-                ]);
-            }
+            $outTransaction = $this->transactionService->createFromDto($transferDto, TransactionType::TransferOut);
+            $inTransaction = $this->transactionService->createFromDto($transferDto, TransactionType::TransferIn);
 
             return new TransferResultDto(
                 $outTransaction,
                 $inTransaction,
-                $newFromBalance,
-                $newToBalance
+                $newFromUserBalance,
+                $newToUserBalance
             );
         });
     }
@@ -157,10 +92,5 @@ readonly class UserBalanceService
         }
 
         return (float)$userBalance->amount;
-    }
-
-    private function getKafkaService(): ?KafkaService
-    {
-        return App::bound(KafkaService::class) ? App::make(KafkaService::class) : null;
     }
 }

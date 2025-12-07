@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Dto\Request\RequestDtoInterface;
 use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
@@ -16,21 +17,16 @@ readonly class TransactionService
     ) {
     }
 
-    public function create(
-        int             $toUserId,
-        float           $amount,
-        TransactionType $type,
-        ?int            $fromUserId = null,
-        ?string         $comment = null,
-    ): Transaction {
-        return $this->transactionRepository->create(
-            (new TransactionParams(
-                toUserId: $toUserId,
-                amount: $amount,
-                type: $type,
-                fromUserId: $fromUserId,
-                comment: $comment,
-            ))
+    public function createFromDto(RequestDtoInterface $dto, TransactionType $type): Transaction
+    {
+        $params = new TransactionParams(
+            toUserId:   $dto->getToUserId(),
+            amount:     $dto->getAmount(),
+            type:       $type,
+            fromUserId: $dto->getFromUserId(),
+            comment:    $dto->getComment(),
         );
+
+        return $this->transactionRepository->create($params);
     }
 }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Dto\DepositDto;
-use App\Dto\TransferDto;
-use App\Dto\WithdrawDto;
+use App\Dto\Request\DepositDto;
+use App\Dto\Request\TransferDto;
+use App\Dto\Request\WithdrawDto;
 use App\Exceptions\InsufficientFundsException;
 use App\Exceptions\UserNotFoundException;
 use App\Models\UserBalance;

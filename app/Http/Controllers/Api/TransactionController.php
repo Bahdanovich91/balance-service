@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Dto\DepositDto;
-use App\Dto\TransferDto;
-use App\Dto\WithdrawDto;
+use App\Dto\Request\DepositDto;
+use App\Dto\Request\TransferDto;
+use App\Dto\Request\WithdrawDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\TransferRequest;
@@ -15,7 +15,6 @@ use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
-use OpenApi\Annotations as OA;
 
 class TransactionController extends Controller
 {
