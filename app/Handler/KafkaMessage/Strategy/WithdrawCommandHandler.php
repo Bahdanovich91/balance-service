@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Handler\KafkaMessage\Strategy;
 
 use App\Dto\Request\WithdrawDto;
+use App\Handler\Balance\WithdrawHandler;
 use App\Services\KafkaService;
-use App\Services\UserBalanceService;
 use Illuminate\Support\Facades\Log;
 
 final readonly class WithdrawCommandHandler implements CommandHandlerInterface
 {
     public function __construct(
-        private UserBalanceService $balanceService,
+        private WithdrawHandler    $withdrawHandler,
         private KafkaService       $kafkaService,
     ) {
     }
@@ -27,7 +27,7 @@ final readonly class WithdrawCommandHandler implements CommandHandlerInterface
         $withdrawDto = new WithdrawDto(user_id: $data['user_id'], amount: $data['amount'], comment: 'Order payment via Kafka');
 
         try {
-            $withdrawResultDto = $this->balanceService->withdraw($withdrawDto);
+            $withdrawResultDto = ($this->withdrawHandler)($withdrawDto);
 
             $this->kafkaService->sendEvent([
                 'type' => 'balance_withdrawn',
