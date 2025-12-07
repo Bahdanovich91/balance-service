@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Handler\Balance\GetBalanceHandler;
 use App\Http\Controllers\Controller;
-use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -24,11 +24,6 @@ use OpenApi\Annotations as OA;
  */
 class BalanceController extends Controller
 {
-    public function __construct(
-        private readonly UserBalanceService $balanceService,
-    ) {
-    }
-
     /**
      * @OA\Get(
      *     path="/api/balance/{userId}",
@@ -62,16 +57,12 @@ class BalanceController extends Controller
      *     )
      * )
      */
-    public function balance(int $userId): JsonResponse
+    public function balance(int $userId, GetBalanceHandler $getBalanceHandler): JsonResponse
     {
         try {
-            $balance = $this->balanceService->getBalance($userId);
+            $balance = ($getBalanceHandler)($userId);
         } catch (\Throwable $e) {
-            Log::error(sprintf(
-                'Balance request failed - User ID: %d, Error: %s',
-                $userId,
-                $e->getMessage()
-            ));
+            Log::error(sprintf('Balance request failed - User ID: %d, Error: %s', $userId, $e->getMessage()));
 
             return response()->json(
                 [

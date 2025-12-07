@@ -7,22 +7,19 @@ namespace App\Http\Controllers\Api;
 use App\Dto\Request\DepositDto;
 use App\Dto\Request\TransferDto;
 use App\Dto\Request\WithdrawDto;
+use App\Handler\Balance\DepositHandler;
+use App\Handler\Balance\TransferHandler;
+use App\Handler\Balance\WithdrawHandler;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\TransferRequest;
 use App\Http\Requests\WithdrawRequest;
-use App\Services\UserBalanceService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class TransactionController extends Controller
 {
-    public function __construct(
-        private readonly UserBalanceService $balanceService
-    ) {
-    }
-
     /**
      * @OA\Post(
      *     path="/api/deposit",
@@ -65,10 +62,10 @@ class TransactionController extends Controller
      *     )
      * )
      */
-    public function deposit(DepositRequest $request): JsonResponse
+    public function deposit(DepositRequest $request, DepositHandler  $depositHandler): JsonResponse
     {
         try {
-            $result = $this->balanceService->deposit(new DepositDto(...$request->validated()));
+            $result = ($depositHandler)(new DepositDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Deposit failed - User ID: %d, Amount: %.2f, Error: %s',
@@ -93,7 +90,7 @@ class TransactionController extends Controller
                 'transaction' => $result->transaction,
                 'new_balance' => $result->newBalance,
             ],
-            Response::HTTP_OK
+            ResponseAlias::HTTP_OK
         );
     }
 
@@ -147,10 +144,10 @@ class TransactionController extends Controller
      *     )
      * )
      */
-    public function withdraw(WithdrawRequest $request): JsonResponse
+    public function withdraw(WithdrawRequest $request, WithdrawHandler $withdrawHandler): JsonResponse
     {
         try {
-            $result = $this->balanceService->withdraw(new WithdrawDto(...$request->validated()));
+            $result = ($withdrawHandler)(new WithdrawDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Withdrawal failed - User ID: %d, Amount: %.2f, Error: %s',
@@ -175,7 +172,7 @@ class TransactionController extends Controller
                 'transaction' => $result->transaction,
                 'new_balance' => $result->newBalance,
             ],
-            Response::HTTP_OK
+            ResponseAlias::HTTP_OK
         );
     }
 
@@ -240,10 +237,10 @@ class TransactionController extends Controller
      *     )
      * )
      */
-    public function transfer(TransferRequest $request): JsonResponse
+    public function transfer(TransferRequest $request, TransferHandler $transferHandler): JsonResponse
     {
         try {
-            $result = $this->balanceService->transfer(new TransferDto(...$request->validated()));
+            $result = ($transferHandler)(new TransferDto(...$request->validated()));
         } catch (\Throwable $e) {
             Log::error(sprintf(
                 'Transfer failed - From User ID: %d, To User ID: %d, Amount: %.2f, Error: %s',
@@ -271,7 +268,7 @@ class TransactionController extends Controller
                 'from_user_balance' => $result->fromUserBalance,
                 'to_user_balance' => $result->toUserBalance,
             ],
-            Response::HTTP_OK
+            ResponseAlias::HTTP_OK
         );
     }
 }

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Handler\KafkaMessage\Strategy;
 
-use App\Services\UserBalanceService;
+use App\Handler\Balance\GetBalanceHandler;
 use Illuminate\Support\Facades\Log;
 
-final class CheckCommandHandler implements CommandHandlerInterface
+final readonly class CheckCommandHandler implements CommandHandlerInterface
 {
-    public function __construct(private UserBalanceService $balanceService)
+    public function __construct(private GetBalanceHandler $getBalanceHandler)
     {
     }
 
@@ -24,7 +24,7 @@ final class CheckCommandHandler implements CommandHandlerInterface
         $requiredAmount = (float)($data['amount'] ?? 0);
 
         try {
-            $balance = $this->balanceService->getBalance($userId);
+            $balance = ($this->getBalanceHandler)($userId);
             $sufficient = $balance >= $requiredAmount;
 
             Log::info('Balance check completed', [
